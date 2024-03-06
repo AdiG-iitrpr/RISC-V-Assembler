@@ -11,6 +11,7 @@ std::vector<Token> Lexer::tokenize(const std::string& input) {
         if (isWhitespace(c) || isDelimiter(c)) {
 
             if (!currentToken.empty()) {
+                currentToken = mapSpecialRegisters(currentToken);
                 tokens.push_back(Token(TokenType::INSTRUCTION, currentToken));
                 std::cout << currentToken << std::endl;
                 currentToken.clear();
@@ -27,6 +28,7 @@ std::vector<Token> Lexer::tokenize(const std::string& input) {
 
 
     if (!currentToken.empty()) {
+        currentToken = mapSpecialRegisters(currentToken);
         tokens.push_back(Token(TokenType::INSTRUCTION, currentToken));
     }
 
@@ -43,4 +45,12 @@ bool Lexer::isDelimiter(char c) {
 
 bool Lexer::isComment(char c) {
     return c == '#';
+}
+
+std::string Lexer::mapSpecialRegisters(const std::string& alias) {
+    auto it = registerAliasMap.find(alias);
+    if (it != registerAliasMap.end()) {
+        return it->second;
+    }
+    return alias;
 }
