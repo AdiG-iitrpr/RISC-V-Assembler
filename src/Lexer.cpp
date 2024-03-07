@@ -10,10 +10,10 @@ std::vector<Token> Lexer::tokenize(const std::string& input) {
     std::string currentToken;
 
     int lineNumber = 1;
-    bool comment = false;
 
     for (std::size_t i = 0; i < input.length(); ++i) {
         char c = input[i];
+        bool comment = false;
 
         if (isWhitespace(c) || isDelimiter(c)) {
 
