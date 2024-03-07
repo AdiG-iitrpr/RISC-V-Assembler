@@ -9,6 +9,9 @@ std::vector<Token> Lexer::tokenize(const std::string& input) {
     std::vector<Token> tokens;
     std::string currentToken;
 
+    int lineNumber = 1;
+    bool comment = false;
+
     for (std::size_t i = 0; i < input.length(); ++i) {
         char c = input[i];
 
@@ -17,27 +20,33 @@ std::vector<Token> Lexer::tokenize(const std::string& input) {
             if (!currentToken.empty()) {
                 currentToken = mapSpecialRegisters(currentToken);
                 TokenType tokenType = getTokenType(currentToken);
-                tokens.push_back(Token(tokenType, currentToken));
+                tokens.push_back(Token(tokenType, currentToken, lineNumber));
 
                 std::cout << currentToken << std::endl;
+                std::cout << lineNumber << std::endl;
                 currentToken.clear();
             }
         } else if (isComment(c)) {
+            comment = true;
             while (i < input.length() && c != '\n' && c != '\r') {
                 c = input[++i];
             }
         } else {
             currentToken += c;
         }
+
+        if (c == '\n' and !comment)
+            lineNumber++;
     }
 
 
     if (!currentToken.empty()) {
         currentToken = mapSpecialRegisters(currentToken);
         TokenType tokenType = getTokenType(currentToken);
-        tokens.push_back(Token(tokenType, currentToken));
+        tokens.push_back(Token(tokenType, currentToken, lineNumber));
 
         std::cout << currentToken << std::endl;
+        std::cout << lineNumber << std::endl;
     }
 
     return tokens;
@@ -48,7 +57,7 @@ bool Lexer::isWhitespace(char c) {
 }
 
 bool Lexer::isDelimiter(char c) {
-    return c == ',' || c == '(' || c == ')' || c == ':';
+    return c == ',' || c == '(' || c == ')';
 }
 
 bool Lexer::isComment(char c) {
