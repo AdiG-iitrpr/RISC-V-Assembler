@@ -39,7 +39,7 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
                 std::cout << instructionTokens[j].getValue() << " ";
             std::cout << std::endl;
 
-            std::vector<Instruction> parsedInstructions = parser.parse(instructionTokens, symbolTable);
+            Instruction parsedInstruction = parser.parse(instructionTokens, symbolTable);
         } else if (token.getType() == TokenType::DIRECTIVE) {
             handleDirective(token.getValue(), tokens);
         }
@@ -60,9 +60,17 @@ std::string Assembler::readFile(const std::string& filePath) {
     }
 
     std::stringstream buffer;
-    buffer << file.rdbuf();
+    std::string line;
+
+    while (std::getline(file, line)) {
+        if (!line.empty()) {
+            buffer << line << '\n';
+        }
+    }
+
     return buffer.str();
 }
+
 
 Assembler::~Assembler() {
     // empty

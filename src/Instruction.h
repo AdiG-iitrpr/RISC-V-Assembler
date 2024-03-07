@@ -53,7 +53,7 @@ static const std::unordered_map<std::string, std::tuple<Type, std::string, std::
 class Instruction {
 public:
 
-    Instruction(Type type, const std::string& opcode, const std::vector<std::string>& operands);
+    Instruction(Type type, const std::string& opcode, const std::string& funct3, const std::string& funct7, const std::vector<std::string>& operands);
 
     Type getType() const;
     const std::string& getOpcode() const;
