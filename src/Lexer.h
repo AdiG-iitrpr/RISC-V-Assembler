@@ -3,13 +3,14 @@
 #include "Token.h"
 #include "Instruction.h"
 #include "RegisterAliases.h"
+#include "SymbolTable.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
 
 class Lexer {
 public:
-    std::vector<Token> tokenize(const std::string& input);
+    std::vector<Token> tokenize(const std::string& input, SymbolTable &symbolTable);
 
 private:
 

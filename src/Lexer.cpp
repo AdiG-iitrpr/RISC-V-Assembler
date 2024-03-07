@@ -5,15 +5,17 @@
 #include <cctype>
 #include <algorithm>
 
-std::vector<Token> Lexer::tokenize(const std::string& input) {
+std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbolTable) {
     std::vector<Token> tokens;
     std::string currentToken;
+    std::string currentLabel;
 
     int lineNumber = 1;
 
     for (std::size_t i = 0; i < input.length(); ++i) {
         char c = input[i];
         bool comment = false;
+        bool label = false;
 
         if (isWhitespace(c) || isDelimiter(c)) {
 
@@ -24,6 +26,17 @@ std::vector<Token> Lexer::tokenize(const std::string& input) {
 
                 std::cout << currentToken << std::endl;
                 std::cout << lineNumber << std::endl;
+
+                if (tokenType == TokenType::LABEL and currentToken[currentToken.size() - 1] == ':') {
+                    label = true;
+                    currentLabel = currentToken.substr(0, currentToken.size() - 1);
+                }
+
+                if (tokenType == TokenType::INSTRUCTION and !currentLabel.empty()) {
+                    symbolTable.addLabel(currentLabel, lineNumber);
+                    currentLabel.clear();
+                }
+
                 currentToken.clear();
             }
         } else if (isComment(c)) {
@@ -35,7 +48,7 @@ std::vector<Token> Lexer::tokenize(const std::string& input) {
             currentToken += c;
         }
 
-        if (c == '\n' and !comment)
+        if (c == '\n' and !comment and !label)
             lineNumber++;
     }
 
@@ -47,6 +60,21 @@ std::vector<Token> Lexer::tokenize(const std::string& input) {
 
         std::cout << currentToken << std::endl;
         std::cout << lineNumber << std::endl;
+
+        if (tokenType == TokenType::LABEL and currentToken[currentToken.size() - 1] == ':') {
+            currentLabel = currentToken.substr(0, currentToken.size() - 1);
+        }
+
+        if (tokenType == TokenType::INSTRUCTION and !currentLabel.empty()) {
+            symbolTable.addLabel(currentLabel, lineNumber);
+            currentLabel.clear();
+        }
+
+    }
+
+    if (!currentLabel.empty()) {
+        symbolTable.addLabel(currentLabel, lineNumber);
+        currentLabel.clear();
     }
 
     return tokens;
