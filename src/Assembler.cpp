@@ -181,13 +181,45 @@ std::bitset<32> Assembler::generateITypeMachineCode(const std::string& opcode, c
                   | (rd << 7)
                   | (binaryStringToNumber(funct3) << 12)
                   | (rs1 << 15)
-                  | (immediate << 20);
+                  | (immediate << 25);
 
     return machineCode;
 }
 
 std::bitset<32> Assembler::generateSTypeMachineCode(const std::string& opcode, const std::string& funct3, const std::vector<std::string>& operands) {
     std::bitset<32> machineCode;
+
+    int rs2 = std::stoi(operands[0].substr(1));
+    int rs1 = std::stoi(operands[2].substr(1));
+    std::string imm = operands[1];
+    int immediate;
+
+    if (imm[0] == '-') {
+
+        if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'x' || imm[2] == 'X')) {
+            immediate = -std::stoi(imm.substr(3), nullptr, 16);
+        } else if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'b' || imm[2] == 'B')) {
+            immediate = -std::stoi(imm.substr(3), nullptr, 2);
+        } else {
+            immediate = -std::stoi(imm.substr(1));
+        }
+    } else {
+        if (imm.size() > 2 && imm[0] == '0' && (imm[1] == 'x' || imm[1] == 'X')) {
+            immediate = std::stoi(imm.substr(2), nullptr, 16);
+        } else if (imm.size() > 2 && imm[0] == '0' && (imm[1] == 'b' || imm[1] == 'B')) {
+            immediate = std::stoi(imm.substr(2), nullptr, 2);
+        } else {
+            immediate = std::stoi(imm);
+        }
+    }
+
+    machineCode = binaryStringToNumber(opcode)
+                  | ((immediate & 0x1F) << 7) // imm[0:4]
+                  | (binaryStringToNumber(funct3) << 12)
+                  | (rs1 << 15)
+                  | (rs2 << 20)
+                  | ((immediate & 0xFE0) << 20);  // (imm[5:11])
+
     return machineCode;
 }
 
