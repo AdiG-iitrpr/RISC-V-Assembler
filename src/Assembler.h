@@ -25,7 +25,8 @@ private:
     uint32_t codeSegmentAddress;
     uint32_t dataSegmentAddress;
 
-    void handleDirective(const std::string& directive, const std::vector<Token>& tokens);
+    void handleDirective(const std::string& directive, const std::vector<Token>& tokens, const size_t& tokenId);
+    std::string immedTypeToHexadecimal(const std::string& immed);
     std::string readFile(const std::string& filePath);
     int binaryStringToNumber(const std::string& binaryString);
     std::string binaryToHex(const std::bitset<32>&bits);

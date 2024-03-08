@@ -11,6 +11,7 @@
 #include <bitset>
 #include <iomanip>
 
+
 Assembler::Assembler(Lexer &lexer, Parser &parser, SymbolTable &symbolTable) : codeSegmentAddress(0x00000000), dataSegmentAddress(0x10000000), lexer(lexer), parser(parser), symbolTable(symbolTable) {
 }
 
@@ -47,15 +48,85 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
             std::cout << hexcode << std::endl;
 
         } else if (token.getType() == TokenType::DIRECTIVE) {
-            handleDirective(token.getValue(), tokens);
+            handleDirective(token.getValue(), tokens, i);
         }
     }
 
     outputFile.close();
 }
 
-void Assembler::handleDirective(const std::string& directive, const std::vector<Token>& tokens) {
+void Assembler::handleDirective(const std::string& directive, const std::vector<Token>& tokens, const size_t& tokenId) {
+    std::string dataLabel = ".data";
+    std::string textLabel = ".text";
+    std::string charLabel = ".asciiz";
+    std::string dataAddress = "0x10000000";
+    std::unordered_map<std::string, int>typeToSizeMap = {{".byte",1},{".half",2},{".word",4},{".dword",8}};
+    if(directive == dataLabel){
+        std::cout<<"--Data Segment--"<<std::endl;
+        size_t j = tokenId+1;
+        while(tokens[j].getValue() != textLabel){
+            if(tokens[j].getType() != TokenType::DIRECTIVE){
+                j+=1;
+                continue;
+            }
+            std::string sizeType = tokens[j].getValue();
+            int size = typeToSizeMap[sizeType];
+            j +=1 ;
+            while(tokens[j].getType() == TokenType::IMMEDIATE){
+                std::string immed = tokens[j].getValue();
+                std::string imm = immedTypeToHexadecimal(immed);
+                std::cout<<dataAddress<<" "<<imm<<std::endl;
+                uint32_t address = std::stoul(dataAddress, nullptr, 16);
+                if(sizeType == charLabel){
+                    size = immed.size()-2;
+                    address += size;
+                }
+                else{
+                    address += size;
+                }
+                std::stringstream stream;
+                stream << "0x" << std::uppercase << std::setw(8) << std::setfill('0') << std::hex << address;
+                dataAddress = stream.str();
+                j++;
+            }
+        }
+    }
+}
 
+std::string Assembler::immedTypeToHexadecimal(const std::string& imm){
+    int immediate;
+    std::string immed = "0x";
+    if (imm[0] == '"'){
+        for (int i = 1; i < imm.size()-1; i++) {
+            char c = imm[i];
+            std::stringstream stream;
+            stream << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(c);
+            immed += stream.str();
+        }
+    } else if (imm[0] == '-') {
+        if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'x' || imm[2] == 'X')) {
+            immediate = -std::stoi(imm.substr(3), nullptr, 16);
+        } else if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'b' || imm[2] == 'B')) {
+            immediate = -std::stoi(imm.substr(3), nullptr, 2);
+        } else {
+            immediate = -std::stoi(imm.substr(1));
+        }
+        std::stringstream stream;
+        stream << std::hex << std::uppercase << std::setw(8) << std::setfill('0') << immediate;
+        immed += stream.str();
+    } else {
+        if (imm.size() > 2 && imm[0] == '0' && (imm[1] == 'x' || imm[1] == 'X')) {
+            immediate = std::stoi(imm.substr(2), nullptr, 16);
+        } else if (imm.size() > 2 && imm[0] == '0' && (imm[1] == 'b' || imm[1] == 'B')) {
+            immediate = std::stoi(imm.substr(2), nullptr, 2);
+        } else {
+            immediate = std::stoi(imm);
+        }
+        std::stringstream stream;
+        stream << std::hex << std::uppercase << std::setw(8) << std::setfill('0') << immediate;
+        immed += stream.str();
+    }
+    return immed;
 }
 
 

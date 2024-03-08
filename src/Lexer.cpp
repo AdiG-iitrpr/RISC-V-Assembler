@@ -118,6 +118,10 @@ TokenType Lexer::getTokenType(const std::string& token) {
     }
 
     // Check if the token is an immediate (constant value)
+    if (token.front() == '"' && token.back() == '"') {
+        return TokenType::IMMEDIATE;
+    }
+
     if (token.front() == '-' && std::isdigit(token[1])) {
         return TokenType::IMMEDIATE;
     } else if (std::isdigit(token.front())) {
