@@ -29,6 +29,7 @@ private:
     std::string readFile(const std::string& filePath);
     int binaryStringToNumber(const std::string& binaryString);
     std::string binaryToHex(const std::bitset<32>&bits);
+    std::string decimalToHex(uint32_t decimal);
     int convertImmediateToInteger(const std::string& imm);
     std::bitset<32> generateMachineCode(const Instruction& instruction);
     std::bitset<32> generateRTypeMachineCode(const std::string& opcode, const std::string& funct3, const std::string& funct7, const std::vector<std::string>& operands);

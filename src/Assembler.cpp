@@ -44,7 +44,8 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
             Instruction parsedInstruction = parser.parse(instructionTokens, symbolTable);
             std::bitset<32> machineCode = generateMachineCode(parsedInstruction);
             std::string hexcode = binaryToHex(machineCode);
-            std::cout << hexcode << std::endl;
+            outputFile << decimalToHex(codeSegmentAddress) << " " << hexcode << std::endl;
+            codeSegmentAddress += 4;
 
         } else if (token.getType() == TokenType::DIRECTIVE) {
             handleDirective(token.getValue(), tokens);
@@ -120,6 +121,12 @@ std::string Assembler::binaryToHex(const std::bitset<32>&bits) {
     unsigned long long intVal = bits.to_ullong();
     std::stringstream stream;
     stream << std::hex << std::uppercase << std::setw(8) << std::setfill('0') << intVal;
+    return "0x" + stream.str();
+}
+
+std::string Assembler::decimalToHex(uint32_t decimal) {
+    std::stringstream stream;
+    stream << std::hex << decimal;
     return "0x" + stream.str();
 }
 
