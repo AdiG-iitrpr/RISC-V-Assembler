@@ -143,6 +143,46 @@ std::bitset<32> Assembler::generateRTypeMachineCode(const std::string& opcode, c
 
 std::bitset<32> Assembler::generateITypeMachineCode(const std::string& opcode, const std::string& funct3, const std::vector<std::string>& operands) {
     std::bitset<32> machineCode;
+
+    int rd = std::stoi(operands[0].substr(1));
+    int rs1;
+    std::string imm;
+    int immediate;
+
+    // for load instructions immediate is second operand
+    if (binaryStringToNumber(opcode) == 3) {
+        rs1 = std::stoi(operands[2].substr(1));
+        imm = operands[1];
+    } else {
+        imm = operands[2];
+        rs1 = std::stoi(operands[1].substr(1));
+    }
+
+    if (imm[0] == '-') {
+
+        if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'x' || imm[2] == 'X')) {
+            immediate = -std::stoi(imm.substr(3), nullptr, 16);
+        } else if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'b' || imm[2] == 'B')) {
+            immediate = -std::stoi(imm.substr(3), nullptr, 2);
+        } else {
+            immediate = -std::stoi(imm.substr(1));
+        }
+    } else {
+        if (imm.size() > 2 && imm[0] == '0' && (imm[1] == 'x' || imm[1] == 'X')) {
+            immediate = std::stoi(imm.substr(2), nullptr, 16);
+        } else if (imm.size() > 2 && imm[0] == '0' && (imm[1] == 'b' || imm[1] == 'B')) {
+            immediate = std::stoi(imm.substr(2), nullptr, 2);
+        } else {
+            immediate = std::stoi(imm);
+        }
+    }
+
+    machineCode = binaryStringToNumber(opcode)
+                  | (rd << 7)
+                  | (binaryStringToNumber(funct3) << 12)
+                  | (rs1 << 15)
+                  | (immediate << 20);
+
     return machineCode;
 }
 
