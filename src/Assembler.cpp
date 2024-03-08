@@ -181,7 +181,7 @@ std::bitset<32> Assembler::generateITypeMachineCode(const std::string& opcode, c
                   | (rd << 7)
                   | (binaryStringToNumber(funct3) << 12)
                   | (rs1 << 15)
-                  | (immediate << 25);
+                  | (immediate << 20);
 
     return machineCode;
 }
@@ -218,7 +218,7 @@ std::bitset<32> Assembler::generateSTypeMachineCode(const std::string& opcode, c
                   | (binaryStringToNumber(funct3) << 12)
                   | (rs1 << 15)
                   | (rs2 << 20)
-                  | ((immediate & 0xFE0) << 20);  // (imm[5:11])
+                  | ((immediate & 0xFE0) << 25);  // (imm[5:11])
 
     return machineCode;
 }
