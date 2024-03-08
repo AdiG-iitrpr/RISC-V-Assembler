@@ -141,23 +141,9 @@ std::bitset<32> Assembler::generateRTypeMachineCode(const std::string& opcode, c
     return machineCode;
 }
 
-std::bitset<32> Assembler::generateITypeMachineCode(const std::string& opcode, const std::string& funct3, const std::vector<std::string>& operands) {
-    std::bitset<32> machineCode;
+int Assembler::convertImmediateToInteger(const std::string& imm) {
 
-    int rd = std::stoi(operands[0].substr(1));
-    int rs1;
-    std::string imm;
     int immediate;
-
-    // for load instructions immediate is second operand
-    if (binaryStringToNumber(opcode) == 3) {
-        rs1 = std::stoi(operands[2].substr(1));
-        imm = operands[1];
-    } else {
-        imm = operands[2];
-        rs1 = std::stoi(operands[1].substr(1));
-    }
-
     if (imm[0] == '-') {
 
         if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'x' || imm[2] == 'X')) {
@@ -176,6 +162,28 @@ std::bitset<32> Assembler::generateITypeMachineCode(const std::string& opcode, c
             immediate = std::stoi(imm);
         }
     }
+
+    return immediate;
+
+}
+
+std::bitset<32> Assembler::generateITypeMachineCode(const std::string& opcode, const std::string& funct3, const std::vector<std::string>& operands) {
+    std::bitset<32> machineCode;
+
+    int rd = std::stoi(operands[0].substr(1));
+    int rs1;
+    std::string imm;
+
+    // for load instructions immediate is second operand
+    if (binaryStringToNumber(opcode) == 3) {
+        rs1 = std::stoi(operands[2].substr(1));
+        imm = operands[1];
+    } else {
+        imm = operands[2];
+        rs1 = std::stoi(operands[1].substr(1));
+    }
+
+    int immediate = convertImmediateToInteger(imm);
 
     machineCode = binaryStringToNumber(opcode)
                   | (rd << 7)
@@ -192,26 +200,8 @@ std::bitset<32> Assembler::generateSTypeMachineCode(const std::string& opcode, c
     int rs2 = std::stoi(operands[0].substr(1));
     int rs1 = std::stoi(operands[2].substr(1));
     std::string imm = operands[1];
-    int immediate;
 
-    if (imm[0] == '-') {
-
-        if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'x' || imm[2] == 'X')) {
-            immediate = -std::stoi(imm.substr(3), nullptr, 16);
-        } else if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'b' || imm[2] == 'B')) {
-            immediate = -std::stoi(imm.substr(3), nullptr, 2);
-        } else {
-            immediate = -std::stoi(imm.substr(1));
-        }
-    } else {
-        if (imm.size() > 2 && imm[0] == '0' && (imm[1] == 'x' || imm[1] == 'X')) {
-            immediate = std::stoi(imm.substr(2), nullptr, 16);
-        } else if (imm.size() > 2 && imm[0] == '0' && (imm[1] == 'b' || imm[1] == 'B')) {
-            immediate = std::stoi(imm.substr(2), nullptr, 2);
-        } else {
-            immediate = std::stoi(imm);
-        }
-    }
+    int immediate = convertImmediateToInteger(imm);
 
     machineCode = binaryStringToNumber(opcode)
                   | ((immediate & 0x1F) << 7) // imm[0:4]
@@ -229,26 +219,8 @@ std::bitset<32> Assembler::generateSBTypeMachineCode(const std::string& opcode, 
     int rs1 = std::stoi(operands[0].substr(1));
     int rs2 = std::stoi(operands[1].substr(1));
     std::string imm = operands[2];
-    int immediate;
 
-    if (imm[0] == '-') {
-
-        if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'x' || imm[2] == 'X')) {
-            immediate = -std::stoi(imm.substr(3), nullptr, 16);
-        } else if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'b' || imm[2] == 'B')) {
-            immediate = -std::stoi(imm.substr(3), nullptr, 2);
-        } else {
-            immediate = -std::stoi(imm.substr(1));
-        }
-    } else {
-        if (imm.size() > 2 && imm[0] == '0' && (imm[1] == 'x' || imm[1] == 'X')) {
-            immediate = std::stoi(imm.substr(2), nullptr, 16);
-        } else if (imm.size() > 2 && imm[0] == '0' && (imm[1] == 'b' || imm[1] == 'B')) {
-            immediate = std::stoi(imm.substr(2), nullptr, 2);
-        } else {
-            immediate = std::stoi(imm);
-        }
-    }
+    int immediate = convertImmediateToInteger(imm);
 
     machineCode = binaryStringToNumber(opcode)
                   | (((immediate & 0x800) >> 11) << 7) // imm[11]
@@ -266,26 +238,8 @@ std::bitset<32> Assembler::generateUTypeMachineCode(const std::string& opcode, c
 
     int rd = std::stoi(operands[0].substr(1));
     std::string imm = operands[1];
-    int immediate;
 
-    if (imm[0] == '-') {
-
-        if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'x' || imm[2] == 'X')) {
-            immediate = -std::stoi(imm.substr(3), nullptr, 16);
-        } else if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'b' || imm[2] == 'B')) {
-            immediate = -std::stoi(imm.substr(3), nullptr, 2);
-        } else {
-            immediate = -std::stoi(imm.substr(1));
-        }
-    } else {
-        if (imm.size() > 2 && imm[0] == '0' && (imm[1] == 'x' || imm[1] == 'X')) {
-            immediate = std::stoi(imm.substr(2), nullptr, 16);
-        } else if (imm.size() > 2 && imm[0] == '0' && (imm[1] == 'b' || imm[1] == 'B')) {
-            immediate = std::stoi(imm.substr(2), nullptr, 2);
-        } else {
-            immediate = std::stoi(imm);
-        }
-    }
+    int immediate = convertImmediateToInteger(imm);
 
     machineCode = binaryStringToNumber(opcode)
                   | (rd << 7)
@@ -298,26 +252,8 @@ std::bitset<32> Assembler::generateUJTypeMachineCode(const std::string& opcode, 
 
     int rd = std::stoi(operands[0].substr(1));
     std::string imm = operands[1];
-    int immediate;
 
-    if (imm[0] == '-') {
-
-        if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'x' || imm[2] == 'X')) {
-            immediate = -std::stoi(imm.substr(3), nullptr, 16);
-        } else if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'b' || imm[2] == 'B')) {
-            immediate = -std::stoi(imm.substr(3), nullptr, 2);
-        } else {
-            immediate = -std::stoi(imm.substr(1));
-        }
-    } else {
-        if (imm.size() > 2 && imm[0] == '0' && (imm[1] == 'x' || imm[1] == 'X')) {
-            immediate = std::stoi(imm.substr(2), nullptr, 16);
-        } else if (imm.size() > 2 && imm[0] == '0' && (imm[1] == 'b' || imm[1] == 'B')) {
-            immediate = std::stoi(imm.substr(2), nullptr, 2);
-        } else {
-            immediate = std::stoi(imm);
-        }
-    }
+    int immediate = convertImmediateToInteger(imm);
 
     machineCode = binaryStringToNumber(opcode)
                   | (rd << 7)
