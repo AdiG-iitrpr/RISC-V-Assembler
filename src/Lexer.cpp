@@ -9,13 +9,13 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
     std::vector<Token> tokens;
     std::string currentToken;
     std::string currentLabel;
+    std::vector<std::string> toUpdateLabels;
 
     int lineNumber = 1;
+    bool instruction = false;
 
     for (std::size_t i = 0; i < input.length(); ++i) {
         char c = input[i];
-        bool comment = false;
-        bool label = false;
 
         if (isWhitespace(c) || isDelimiter(c)) {
 
@@ -27,20 +27,28 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
                 std::cout << currentToken << std::endl;
                 std::cout << lineNumber << std::endl;
 
-                if (tokenType == TokenType::LABEL and currentToken[currentToken.size() - 1] == ':') {
-                    label = true;
-                    currentLabel = currentToken.substr(0, currentToken.size() - 1);
+                if (tokenType == TokenType::LABEL) {
+                    currentLabel = currentToken;
                 }
 
-                if (tokenType == TokenType::INSTRUCTION and !currentLabel.empty()) {
-                    symbolTable.addLabel(currentLabel, lineNumber);
-                    currentLabel.clear();
+                if (tokenType == TokenType::INSTRUCTION) {
+                    instruction = true;
+                    if (!toUpdateLabels.empty()) {
+                        for (std::size_t j = 0; j < toUpdateLabels.size(); j++)
+                            symbolTable.addLabel(toUpdateLabels[j], lineNumber);
+                        toUpdateLabels.clear();
+                    }
                 }
 
                 currentToken.clear();
             }
+
+            if (c == ':') {
+                toUpdateLabels.push_back(currentLabel);
+            }
+
+
         } else if (isComment(c)) {
-            comment = true;
             while (i < input.length() && c != '\n' && c != '\r') {
                 c = input[++i];
             }
@@ -48,8 +56,11 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
             currentToken += c;
         }
 
-        if (c == '\n' and !comment and !label)
+        if (c == '\n' and instruction)
             lineNumber++;
+
+        if (c == '\n')
+            instruction = false;
     }
 
 
@@ -61,27 +72,30 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
         std::cout << currentToken << std::endl;
         std::cout << lineNumber << std::endl;
 
-        if (tokenType == TokenType::LABEL and currentToken[currentToken.size() - 1] == ':') {
-            currentLabel = currentToken.substr(0, currentToken.size() - 1);
+        if (tokenType == TokenType::LABEL) {
+            currentLabel = currentToken;
         }
 
-        if (tokenType == TokenType::INSTRUCTION and !currentLabel.empty()) {
-            symbolTable.addLabel(currentLabel, lineNumber);
-            currentLabel.clear();
+        if (tokenType == TokenType::INSTRUCTION) {
+            if (!toUpdateLabels.empty()) {
+                for (std::size_t j = 0; j < toUpdateLabels.size(); j++)
+                    symbolTable.addLabel(toUpdateLabels[j], lineNumber);
+                toUpdateLabels.clear();
+            }
         }
-
     }
 
-    if (!currentLabel.empty()) {
-        symbolTable.addLabel(currentLabel, lineNumber);
-        currentLabel.clear();
+    if (!toUpdateLabels.empty()) {
+        for (std::size_t j = 0; j < toUpdateLabels.size(); j++)
+            symbolTable.addLabel(toUpdateLabels[j], lineNumber);
+        toUpdateLabels.clear();
     }
 
     return tokens;
 }
 
 bool Lexer::isWhitespace(char c) {
-    return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == ':';
 }
 
 bool Lexer::isDelimiter(char c) {
@@ -118,10 +132,6 @@ TokenType Lexer::getTokenType(const std::string& token) {
     }
 
     // Check if the token is an immediate (constant value)
-    if (token.front() == '"' && token.back() == '"') {
-        return TokenType::IMMEDIATE;
-    }
-
     if (token.front() == '-' && std::isdigit(token[1])) {
         return TokenType::IMMEDIATE;
     } else if (std::isdigit(token.front())) {
