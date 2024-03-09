@@ -9,7 +9,7 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
     std::vector<Token> tokens;
     std::string currentToken;
     std::string currentLabel;
-    std::string toUpdateLabel;
+    std::vector<std::string> toUpdateLabels;
 
     int lineNumber = 1;
     bool instruction = false;
@@ -33,9 +33,10 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
 
                 if (tokenType == TokenType::INSTRUCTION) {
                     instruction = true;
-                    if (!toUpdateLabel.empty()) {
-                        symbolTable.addLabel(toUpdateLabel, lineNumber);
-                        toUpdateLabel.clear();
+                    if (!toUpdateLabels.empty()) {
+                        for (std::size_t j = 0; j < toUpdateLabels.size(); j++)
+                            symbolTable.addLabel(toUpdateLabels[j], lineNumber);
+                        toUpdateLabels.clear();
                     }
                 }
 
@@ -43,7 +44,7 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
             }
 
             if (c == ':') {
-                toUpdateLabel = currentLabel;
+                toUpdateLabels.push_back(currentLabel);
             }
 
 
@@ -76,16 +77,18 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
         }
 
         if (tokenType == TokenType::INSTRUCTION) {
-            if (!toUpdateLabel.empty()) {
-                symbolTable.addLabel(toUpdateLabel, lineNumber);
-                toUpdateLabel.clear();
+            if (!toUpdateLabels.empty()) {
+                for (std::size_t j = 0; j < toUpdateLabels.size(); j++)
+                    symbolTable.addLabel(toUpdateLabels[j], lineNumber);
+                toUpdateLabels.clear();
             }
         }
     }
 
-    if (!toUpdateLabel.empty()) {
-        symbolTable.addLabel(toUpdateLabel, lineNumber);
-        toUpdateLabel.clear();
+    if (!toUpdateLabels.empty()) {
+        for (std::size_t j = 0; j < toUpdateLabels.size(); j++)
+            symbolTable.addLabel(toUpdateLabels[j], lineNumber);
+        toUpdateLabels.clear();
     }
 
     return tokens;
