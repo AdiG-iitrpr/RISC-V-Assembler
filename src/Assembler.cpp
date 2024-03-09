@@ -45,7 +45,8 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
             Instruction parsedInstruction = parser.parse(instructionTokens, symbolTable);
             std::bitset<32> machineCode = generateMachineCode(parsedInstruction);
             std::string hexcode = binaryToHex(machineCode);
-            std::cout << hexcode << std::endl;
+            outputFile << decimalToHex(codeSegmentAddress) << " " << hexcode << std::endl;
+            codeSegmentAddress += 4;
 
         } else if (token.getType() == TokenType::DIRECTIVE) {
             handleDirective(token.getValue(), tokens, i);
@@ -194,6 +195,12 @@ std::string Assembler::binaryToHex(const std::bitset<32>&bits) {
     return "0x" + stream.str();
 }
 
+std::string Assembler::decimalToHex(uint32_t decimal) {
+    std::stringstream stream;
+    stream << std::hex << decimal;
+    return "0x" + stream.str();
+}
+
 std::bitset<32> Assembler::generateRTypeMachineCode(const std::string& opcode, const std::string& funct3, const std::string& funct7, const std::vector<std::string>& operands) {
 
     std::bitset<32> machineCode;
@@ -212,23 +219,9 @@ std::bitset<32> Assembler::generateRTypeMachineCode(const std::string& opcode, c
     return machineCode;
 }
 
-std::bitset<32> Assembler::generateITypeMachineCode(const std::string& opcode, const std::string& funct3, const std::vector<std::string>& operands) {
-    std::bitset<32> machineCode;
+int Assembler::convertImmediateToInteger(const std::string& imm) {
 
-    int rd = std::stoi(operands[0].substr(1));
-    int rs1;
-    std::string imm;
     int immediate;
-
-    // for load instructions immediate is second operand
-    if (binaryStringToNumber(opcode) == 3) {
-        rs1 = std::stoi(operands[2].substr(1));
-        imm = operands[1];
-    } else {
-        imm = operands[2];
-        rs1 = std::stoi(operands[1].substr(1));
-    }
-
     if (imm[0] == '-') {
 
         if (imm.size() > 3 && imm[1] == '0' && (imm[2] == 'x' || imm[2] == 'X')) {
@@ -248,6 +241,28 @@ std::bitset<32> Assembler::generateITypeMachineCode(const std::string& opcode, c
         }
     }
 
+    return immediate;
+
+}
+
+std::bitset<32> Assembler::generateITypeMachineCode(const std::string& opcode, const std::string& funct3, const std::vector<std::string>& operands) {
+    std::bitset<32> machineCode;
+
+    int rd = std::stoi(operands[0].substr(1));
+    int rs1;
+    std::string imm;
+
+    // for load instructions immediate is second operand
+    if (binaryStringToNumber(opcode) == 3) {
+        rs1 = std::stoi(operands[2].substr(1));
+        imm = operands[1];
+    } else {
+        imm = operands[2];
+        rs1 = std::stoi(operands[1].substr(1));
+    }
+
+    int immediate = convertImmediateToInteger(imm);
+
     machineCode = binaryStringToNumber(opcode)
                   | (rd << 7)
                   | (binaryStringToNumber(funct3) << 12)
@@ -259,21 +274,72 @@ std::bitset<32> Assembler::generateITypeMachineCode(const std::string& opcode, c
 
 std::bitset<32> Assembler::generateSTypeMachineCode(const std::string& opcode, const std::string& funct3, const std::vector<std::string>& operands) {
     std::bitset<32> machineCode;
+
+    int rs2 = std::stoi(operands[0].substr(1));
+    int rs1 = std::stoi(operands[2].substr(1));
+    std::string imm = operands[1];
+
+    int immediate = convertImmediateToInteger(imm);
+
+    machineCode = binaryStringToNumber(opcode)
+                  | ((immediate & 0x1F) << 7) // imm[0:4]
+                  | (binaryStringToNumber(funct3) << 12)
+                  | (rs1 << 15)
+                  | (rs2 << 20)
+                  | (((immediate & 0xFE0) >> 5) << 25);  // (imm[5:11])
+
     return machineCode;
 }
 
 std::bitset<32> Assembler::generateSBTypeMachineCode(const std::string& opcode, const std::string& funct3, const std::vector<std::string>& operands) {
     std::bitset<32> machineCode;
+
+    int rs1 = std::stoi(operands[0].substr(1));
+    int rs2 = std::stoi(operands[1].substr(1));
+    std::string imm = operands[2];
+
+    int immediate = convertImmediateToInteger(imm);
+
+    machineCode = binaryStringToNumber(opcode)
+                  | (((immediate & 0x800) >> 11) << 7) // imm[11]
+                  | (((immediate & 0x1E) >> 1) << 8) // imm[1:4]
+                  | (binaryStringToNumber(funct3) << 12)
+                  | (rs1 << 15)
+                  | (rs2 << 20)
+                  | (((immediate & 0x7E0) >> 5) << 25) // (imm[5:10])
+                  | (((immediate & 0x1000) >> 12) << 31); // imm[12]
     return machineCode;
 }
 
 std::bitset<32> Assembler::generateUTypeMachineCode(const std::string& opcode, const std::vector<std::string>& operands) {
     std::bitset<32> machineCode;
+
+    int rd = std::stoi(operands[0].substr(1));
+    std::string imm = operands[1];
+
+    int immediate = convertImmediateToInteger(imm);
+
+    machineCode = binaryStringToNumber(opcode)
+                  | (rd << 7)
+                  | ((immediate & 0xFFFFF000) << 12); // imm[12:31]
     return machineCode;
 }
 
 std::bitset<32> Assembler::generateUJTypeMachineCode(const std::string& opcode, const std::vector<std::string>& operands) {
     std::bitset<32> machineCode;
+
+    int rd = std::stoi(operands[0].substr(1));
+    std::string imm = operands[1];
+
+    int immediate = convertImmediateToInteger(imm);
+
+    machineCode = binaryStringToNumber(opcode)
+                  | (rd << 7)
+                  | (((immediate & 0xFF000) >> 12) << 12) // imm[12:19]
+                  | (((immediate & 0x800) >> 11) << 20) // imm[10]
+                  | (((immediate & 0x7FE) >> 1) << 21) // imm[1:10]
+                  | (((immediate & 0x100000) >> 20) << 31); // imm[20]
+
     return machineCode;
 }
 

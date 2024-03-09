@@ -8,13 +8,18 @@ This repository contains the code to convert a assembly code to a machine code .
 
 To be able to compile the code, you need:
 
-- A C++14 compiler (clang >= 6 or g++ >= 7 should be fine)
+- A C++17 compiler (g++ >= 9 should be fine)
 
 - CMake build system
 
 To build the project, you need to use the `cmake` utility to generate the makefile .
 
 - Clone the repository and go inside the folder path.
+
+- Create a `output` folder by :
+  ```
+  mkdir output
+  ```
 - Create a `build` folder by :
 
   ```
@@ -55,3 +60,5 @@ Example :
 ```
 ./assembler ../input/example1.asm
 ```
+
+This will produce the machine code in a file in the `output` folder with the same filename as input file with `.mc` extension.

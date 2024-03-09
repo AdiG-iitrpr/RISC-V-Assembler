@@ -5,13 +5,14 @@ cmake_minimum_required(VERSION 3.20)
 #
 project(assembler)
 
-add_definitions(-Wall -Wextra -Wfloat-conversion -std=c++14 -pipe -march=x86-64 -mtune=generic)
+add_definitions(-Wall -Wextra -Wfloat-conversion -std=c++17 -pipe -march=x86-64 -mtune=generic)
 
 # Debug and Release definitions.
 # To set the build mode, specify the value of var `CMAKE_BUILD_TYPE` when
 # running CMake.
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -g")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og -g")
+set (CMAKE_CXX_FLAGS "-lstdc++fs -std=c++17")
 
 # Fallback to Debug build type automatically
 # if no compilation mode was specified.
