@@ -50,7 +50,7 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
             codeSegmentAddress += 4;
 
         } else if (token.getType() == TokenType::DIRECTIVE) {
-            handleDirective(token.getValue(), tokens, i);
+            handleDirective(token.getValue(), tokens, i, outputFile);
         }
     }
 
@@ -74,7 +74,7 @@ void Assembler::removeEmptyLines(std::string& assemblyCode){
     }
 }
 
-void Assembler::handleDirective(const std::string& directive, const std::vector<Token>& tokens, const size_t& tokenId) {
+void Assembler::handleDirective(const std::string& directive, const std::vector<Token>& tokens, const size_t& tokenId, std::ofstream& outputFile) {
     std::string dataLabel = ".data";
     std::string textLabel = ".text";
     std::string charLabel = ".asciiz";
@@ -103,7 +103,7 @@ void Assembler::handleDirective(const std::string& directive, const std::vector<
             std::string tempData = data.substr(i,8);
             if(tempData.size() < 8) tempData = tempData + std::string(8-tempData.size(), '0');
             std::string printData = tempData.substr(6,2) + tempData.substr(4,2) + tempData.substr(2,2) + tempData.substr(0,2);
-            std::cout<<dataAddress<<" 0x"<<printData<<std::endl;
+            outputFile<<dataAddress<<" 0x"<<printData<<std::endl;
             uint32_t address = std::stoul(dataAddress, nullptr, 16);
             address += 4;
             std::stringstream stream;

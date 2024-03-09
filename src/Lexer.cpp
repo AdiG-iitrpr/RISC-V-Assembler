@@ -115,6 +115,10 @@ std::string Lexer::mapSpecialRegisters(const std::string& alias) {
 }
 
 TokenType Lexer::getTokenType(const std::string& token) {
+    
+    if (token.front() == '"' && token.back() == '"') {
+        return TokenType::IMMEDIATE;
+    }
 
     if (instructionMap.find(token) != instructionMap.end()) {
         return TokenType::INSTRUCTION;
