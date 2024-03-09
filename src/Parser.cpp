@@ -1,8 +1,7 @@
 #include "Parser.h"
-#include "Token.h"
+
 #include <string>
 #include <vector>
-#include <iostream>
 
 Instruction Parser::parse(const std::vector<Token>& tokens, SymbolTable& symbolTable) {
 
@@ -21,7 +20,6 @@ Instruction Parser::parse(const std::vector<Token>& tokens, SymbolTable& symbolT
             if (tokens[i].getType() == TokenType::LABEL) {
                 int immediate = 4 * (symbolTable.getLabelInstructionLineNumber(tokens[i].getValue()) - tokens[i].getLineNumber());
                 operands.push_back(std::to_string(immediate));
-                std::cout << "immediate is " << immediate << std::endl;
             } else
                 operands.push_back(tokens[i].getValue());
         }

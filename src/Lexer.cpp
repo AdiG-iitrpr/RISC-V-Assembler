@@ -24,9 +24,6 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
                 TokenType tokenType = getTokenType(currentToken);
                 tokens.push_back(Token(tokenType, currentToken, lineNumber));
 
-                std::cout << currentToken << std::endl;
-                std::cout << lineNumber << std::endl;
-
                 if (tokenType == TokenType::LABEL) {
                     currentLabel = currentToken;
                 }
@@ -68,9 +65,6 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
         currentToken = mapSpecialRegisters(currentToken);
         TokenType tokenType = getTokenType(currentToken);
         tokens.push_back(Token(tokenType, currentToken, lineNumber));
-
-        std::cout << currentToken << std::endl;
-        std::cout << lineNumber << std::endl;
 
         if (tokenType == TokenType::LABEL) {
             currentLabel = currentToken;

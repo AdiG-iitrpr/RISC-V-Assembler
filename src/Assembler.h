@@ -2,13 +2,11 @@
 
 #include "Lexer.h"
 #include "Parser.h"
-#include "SymbolTable.h"
-#include "Token.h"
-#include "Instruction.h"
 
 #include <string>
 #include <vector>
 #include <bitset>
+#include <fstream>
 
 class Assembler {
 public:

@@ -1,17 +1,12 @@
 #include "Assembler.h"
-#include "Instruction.h"
-#include "Token.h"
 
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <vector>
-#include <string>
 #include <unordered_map>
-#include <bitset>
 #include <iomanip>
 
-Assembler::Assembler(Lexer &lexer, Parser &parser, SymbolTable &symbolTable) : codeSegmentAddress(0x00000000), dataSegmentAddress(0x10000000), lexer(lexer), parser(parser), symbolTable(symbolTable) {
+Assembler::Assembler(Lexer &lexer, Parser &parser, SymbolTable &symbolTable) : lexer(lexer), parser(parser), symbolTable(symbolTable), codeSegmentAddress(0x00000000), dataSegmentAddress(0x10000000) {
 }
 
 void Assembler::assemble(const std::string& inputFilePath, const std::string& outputFilePath) {
@@ -21,10 +16,6 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
     std::vector<Token> tokens = lexer.tokenize(assemblyCode, symbolTable);
 
     std::ofstream outputFile(outputFilePath);
-
-    for (const auto& pair : symbolTable.getLabels()) {
-        std::cout << "Label: " << pair.first << ", Line Number: " << pair.second << std::endl;
-    }
 
     for (size_t i = 0; i < tokens.size(); ++i) {
         Token token = tokens[i];
@@ -36,10 +27,6 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
                 ++i;
             }
             --i;
-
-            for (int j = 0; j < instructionTokens.size(); j++)
-                std::cout << instructionTokens[j].getValue() << " ";
-            std::cout << std::endl;
 
             Instruction parsedInstruction = parser.parse(instructionTokens, symbolTable);
             std::bitset<32> machineCode = generateMachineCode(parsedInstruction);
