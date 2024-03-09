@@ -18,8 +18,6 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
 
     std::string assemblyCode = readFile(inputFilePath);
 
-    removeEmptyLines(assemblyCode);
-
     std::vector<Token> tokens = lexer.tokenize(assemblyCode, symbolTable);
 
     std::ofstream outputFile(outputFilePath);
@@ -46,7 +44,7 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
             Instruction parsedInstruction = parser.parse(instructionTokens, symbolTable);
             std::bitset<32> machineCode = generateMachineCode(parsedInstruction);
             std::string hexcode = binaryToHex(machineCode);
-            outputFile << decimalToHex(codeSegmentAddress) << " " << hexcode << std::endl;
+            outputFile << decimalToHex(codeSegmentAddress, true, false) << " " << hexcode << std::endl;
             codeSegmentAddress += 4;
 
         } else if (token.getType() == TokenType::DIRECTIVE) {
@@ -57,67 +55,49 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
     outputFile.close();
 }
 
-void Assembler::removeEmptyLines(std::string& assemblyCode){
-    std::stringstream ss(assemblyCode);
-    std::string line;
-    std::vector<std::string> nonEmptyLines;
-
-    while (std::getline(ss, line)) {
-        if (!line.empty() && line.find_first_not_of(' ') != std::string::npos) {
-            nonEmptyLines.push_back(line);
-        }
-    }
-    
-    assemblyCode = "";
-    for (const std::string& nonEmptyLine : nonEmptyLines) {
-        assemblyCode += nonEmptyLine + "\n";
-    }
-}
-
 void Assembler::handleDirective(const std::string& directive, const std::vector<Token>& tokens, const size_t& tokenId, std::ofstream& outputFile) {
+
     std::string dataLabel = ".data";
     std::string textLabel = ".text";
     std::string charLabel = ".asciiz";
-    std::string dataAddress = "0x10000000";
     std::string data;
-    std::unordered_map<std::string, int>typeToSizeMap = {{".byte",1},{".half",2},{".word",4},{".dword",8}};
-    if(directive == dataLabel){
-        std::cout<<"--Data Segment--"<<std::endl;
-        size_t j = tokenId+1;
-        while(tokens[j].getValue() != textLabel && j < tokens.size()){
-            if(tokens[j].getType() != TokenType::DIRECTIVE){
-                j+=1;
+    std::unordered_map<std::string, int>typeToSizeMap = {{".byte", 1}, {".half", 2}, {".word", 4}, {".dword", 8}};
+
+    if (directive == dataLabel) {
+        size_t j = tokenId + 1;
+        while (tokens[j].getValue() != textLabel && j < tokens.size()) {
+
+            if (tokens[j].getType() != TokenType::DIRECTIVE) {
+                j += 1;
                 continue;
             }
             std::string sizeType = tokens[j].getValue();
             int size = typeToSizeMap[sizeType];
-            j +=1 ;
-            while(tokens[j].getType() == TokenType::IMMEDIATE){
+            j += 1 ;
+            while (tokens[j].getType() == TokenType::IMMEDIATE) {
                 std::string immed = tokens[j].getValue();
-                std::string imm = immedTypeToHexadecimal(immed, 2*size);
+                std::string imm = immedTypeToHexadecimal(immed, 2 * size);
                 data += imm;
                 j++;
             }
         }
-        for(int i=0;i<data.size();i+=8){
-            std::string tempData = data.substr(i,8);
-            if(tempData.size() < 8) tempData = tempData + std::string(8-tempData.size(), '0');
-            std::string printData = tempData.substr(6,2) + tempData.substr(4,2) + tempData.substr(2,2) + tempData.substr(0,2);
-            outputFile<<dataAddress<<" 0x"<<printData<<std::endl;
-            uint32_t address = std::stoul(dataAddress, nullptr, 16);
-            address += 4;
-            std::stringstream stream;
-            stream << "0x" << std::uppercase << std::setw(8) << std::setfill('0') << std::hex << address;
-            dataAddress = stream.str();
+        for (int i = 0; i < data.size(); i += 8) {
+
+            std::string tempData = data.substr(i, 8);
+            if (tempData.size() < 8) tempData = tempData + std::string(8 - tempData.size(), '0');
+            std::string printData = "0x" + tempData.substr(6, 2) + tempData.substr(4, 2) + tempData.substr(2, 2) + tempData.substr(0, 2);
+
+            outputFile << decimalToHex(dataSegmentAddress, false, true) << " " << printData << std::endl;
+            dataSegmentAddress += 4;
         }
     }
 }
 
-std::string Assembler::immedTypeToHexadecimal(const std::string& imm, const int& size){
+std::string Assembler::immedTypeToHexadecimal(const std::string& imm, const int& size) {
     int immediate;
     std::string immed;
-    if (imm[0] == '"'){
-        for (int i = 1; i < imm.size()-1; i++) {
+    if (imm[0] == '"') {
+        for (int i = 1; i < imm.size() - 1; i++) {
             char c = imm[i];
             std::stringstream stream;
             stream << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(c);
@@ -126,8 +106,8 @@ std::string Assembler::immedTypeToHexadecimal(const std::string& imm, const int&
         immed += "00";
     } else {
         immediate = convertImmediateToInteger(imm);
-        immed = decimalToHex(immediate).substr(2);
-        if(immed.size() % 2 != 0) immed = "0" + immed;
+        immed = decimalToHex(immediate, true, true).substr(2);
+        if (immed.size() % 2 != 0) immed = "0" + immed;
         int currentLength = immed.length();
         int zerosNeeded = size - currentLength;
         if (zerosNeeded > 0) {
@@ -135,8 +115,8 @@ std::string Assembler::immedTypeToHexadecimal(const std::string& imm, const int&
         }
         std::string tempImm = immed;
         immed = "";
-        for(int i = 0;i < tempImm.size();i+=2){
-            immed = tempImm.substr(i,2) + immed;
+        for (int i = 0; i < tempImm.size(); i += 2) {
+            immed = tempImm.substr(i, 2) + immed;
         }
     }
     return immed;
@@ -207,28 +187,21 @@ std::string Assembler::binaryToHex(const std::bitset<32>&bits) {
     return "0x" + stream.str();
 }
 
-std::string Assembler::decimalToHex(uint32_t decimal) {
+std::string Assembler::decimalToHex(uint32_t decimal, bool trimzeros, bool upperCase) {
     std::stringstream stream;
-    stream << std::hex << decimal;
+    if (trimzeros) {
+        if (upperCase)
+            stream << std::hex << std::uppercase << decimal;
+        else
+            stream << std::hex << decimal;
+    }
+    else {
+        if (upperCase)
+            stream << std::hex << std::uppercase << std::setw(8) << std::setfill('0') << decimal;
+        else
+            stream << std::hex << std::setw(8) << std::setfill('0') << decimal;
+    }
     return "0x" + stream.str();
-}
-
-std::bitset<32> Assembler::generateRTypeMachineCode(const std::string& opcode, const std::string& funct3, const std::string& funct7, const std::vector<std::string>& operands) {
-
-    std::bitset<32> machineCode;
-
-    int rd = std::stoi(operands[0].substr(1));
-    int rs1 = std::stoi(operands[1].substr(1));
-    int rs2 = std::stoi(operands[2].substr(1));
-
-    machineCode = binaryStringToNumber(opcode)
-                  | (rd << 7)
-                  | (binaryStringToNumber(funct3) << 12)
-                  | (rs1 << 15)
-                  | (rs2 << 20)
-                  | (binaryStringToNumber(funct7) << 25);
-
-    return machineCode;
 }
 
 int Assembler::convertImmediateToInteger(const std::string& imm) {
@@ -255,6 +228,24 @@ int Assembler::convertImmediateToInteger(const std::string& imm) {
 
     return immediate;
 
+}
+
+std::bitset<32> Assembler::generateRTypeMachineCode(const std::string& opcode, const std::string& funct3, const std::string& funct7, const std::vector<std::string>& operands) {
+
+    std::bitset<32> machineCode;
+
+    int rd = std::stoi(operands[0].substr(1));
+    int rs1 = std::stoi(operands[1].substr(1));
+    int rs2 = std::stoi(operands[2].substr(1));
+
+    machineCode = binaryStringToNumber(opcode)
+                  | (rd << 7)
+                  | (binaryStringToNumber(funct3) << 12)
+                  | (rs1 << 15)
+                  | (rs2 << 20)
+                  | (binaryStringToNumber(funct7) << 25);
+
+    return machineCode;
 }
 
 std::bitset<32> Assembler::generateITypeMachineCode(const std::string& opcode, const std::string& funct3, const std::vector<std::string>& operands) {
