@@ -27,7 +27,7 @@ private:
 
     void removeEmptyLines(std::string& assemblyCode);
     void handleDirective(const std::string& directive, const std::vector<Token>& tokens, const size_t& tokenId);
-    std::string immedTypeToHexadecimal(const std::string& immed);
+    std::string immedTypeToHexadecimal(const std::string& immed, const int& size);
     std::string readFile(const std::string& filePath);
     int binaryStringToNumber(const std::string& binaryString);
     std::string binaryToHex(const std::bitset<32>&bits);
