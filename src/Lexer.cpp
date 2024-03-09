@@ -9,13 +9,13 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
     std::vector<Token> tokens;
     std::string currentToken;
     std::string currentLabel;
+    std::string toUpdateLabel;
 
     int lineNumber = 1;
+    bool instruction = false;
 
     for (std::size_t i = 0; i < input.length(); ++i) {
         char c = input[i];
-        bool comment = false;
-        bool label = false;
 
         if (isWhitespace(c) || isDelimiter(c)) {
 
@@ -27,20 +27,27 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
                 std::cout << currentToken << std::endl;
                 std::cout << lineNumber << std::endl;
 
-                if (tokenType == TokenType::LABEL and currentToken[currentToken.size() - 1] == ':') {
-                    label = true;
-                    currentLabel = currentToken.substr(0, currentToken.size() - 1);
+                if (tokenType == TokenType::LABEL) {
+                    currentLabel = currentToken;
                 }
 
-                if (tokenType == TokenType::INSTRUCTION and !currentLabel.empty()) {
-                    symbolTable.addLabel(currentLabel, lineNumber);
-                    currentLabel.clear();
+                if (tokenType == TokenType::INSTRUCTION) {
+                    instruction = true;
+                    if (!toUpdateLabel.empty()) {
+                        symbolTable.addLabel(toUpdateLabel, lineNumber);
+                        toUpdateLabel.clear();
+                    }
                 }
 
                 currentToken.clear();
             }
+
+            if (c == ':') {
+                toUpdateLabel = currentLabel;
+            }
+
+
         } else if (isComment(c)) {
-            comment = true;
             while (i < input.length() && c != '\n' && c != '\r') {
                 c = input[++i];
             }
@@ -48,8 +55,11 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
             currentToken += c;
         }
 
-        if (c == '\n' and !comment and !label)
+        if (c == '\n' and instruction)
             lineNumber++;
+
+        if (c == '\n')
+            instruction = false;
     }
 
 
@@ -61,27 +71,28 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
         std::cout << currentToken << std::endl;
         std::cout << lineNumber << std::endl;
 
-        if (tokenType == TokenType::LABEL and currentToken[currentToken.size() - 1] == ':') {
-            currentLabel = currentToken.substr(0, currentToken.size() - 1);
+        if (tokenType == TokenType::LABEL) {
+            currentLabel = currentToken;
         }
 
-        if (tokenType == TokenType::INSTRUCTION and !currentLabel.empty()) {
-            symbolTable.addLabel(currentLabel, lineNumber);
-            currentLabel.clear();
+        if (tokenType == TokenType::INSTRUCTION) {
+            if (!toUpdateLabel.empty()) {
+                symbolTable.addLabel(toUpdateLabel, lineNumber);
+                toUpdateLabel.clear();
+            }
         }
-
     }
 
-    if (!currentLabel.empty()) {
-        symbolTable.addLabel(currentLabel, lineNumber);
-        currentLabel.clear();
+    if (!toUpdateLabel.empty()) {
+        symbolTable.addLabel(toUpdateLabel, lineNumber);
+        toUpdateLabel.clear();
     }
 
     return tokens;
 }
 
 bool Lexer::isWhitespace(char c) {
-    return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == ':';
 }
 
 bool Lexer::isDelimiter(char c) {
