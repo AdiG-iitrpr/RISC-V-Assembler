@@ -11,13 +11,14 @@
 #include <bitset>
 #include <iomanip>
 
-
 Assembler::Assembler(Lexer &lexer, Parser &parser, SymbolTable &symbolTable) : codeSegmentAddress(0x00000000), dataSegmentAddress(0x10000000), lexer(lexer), parser(parser), symbolTable(symbolTable) {
 }
 
 void Assembler::assemble(const std::string& inputFilePath, const std::string& outputFilePath) {
 
     std::string assemblyCode = readFile(inputFilePath);
+
+    removeEmptyLines(assemblyCode);
 
     std::vector<Token> tokens = lexer.tokenize(assemblyCode, symbolTable);
 
@@ -54,6 +55,23 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
     }
 
     outputFile.close();
+}
+
+void Assembler::removeEmptyLines(std::string& assemblyCode){
+    std::stringstream ss(assemblyCode);
+    std::string line;
+    std::vector<std::string> nonEmptyLines;
+
+    while (std::getline(ss, line)) {
+        if (!line.empty() && line.find_first_not_of(' ') != std::string::npos) {
+            nonEmptyLines.push_back(line);
+        }
+    }
+    
+    assemblyCode = "";
+    for (const std::string& nonEmptyLine : nonEmptyLines) {
+        assemblyCode += nonEmptyLine + "\n";
+    }
 }
 
 void Assembler::handleDirective(const std::string& directive, const std::vector<Token>& tokens, const size_t& tokenId) {
