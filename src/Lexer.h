@@ -7,10 +7,21 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <algorithm>
 
 class Lexer {
 public:
     std::vector<Token> tokenize(const std::string& input, SymbolTable &symbolTable);
+
+    static bool caseInsensitiveCompare(const std::string& str1, const std::string& str2) {
+        return toLowerCase(str1) == toLowerCase(str2);
+    }
+
+    static std::string toLowerCase(const std::string& str) {
+        std::string lowerStr = str;
+        std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(), ::tolower);
+        return lowerStr;
+    }
 
 private:
 

@@ -22,7 +22,6 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
             if (!currentToken.empty()) {
                 currentToken = mapSpecialRegisters(currentToken);
                 TokenType tokenType = getTokenType(currentToken);
-                tokens.push_back(Token(tokenType, currentToken, lineNumber));
 
                 if (tokenType == TokenType::LABEL) {
                     currentLabel = currentToken;
@@ -30,12 +29,15 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
 
                 if (tokenType == TokenType::INSTRUCTION) {
                     instruction = true;
+                    currentToken = toLowerCase(currentToken);
                     if (!toUpdateLabels.empty()) {
                         for (std::size_t j = 0; j < toUpdateLabels.size(); j++)
                             symbolTable.addLabel(toUpdateLabels[j], lineNumber);
                         toUpdateLabels.clear();
                     }
                 }
+
+                tokens.push_back(Token(tokenType, currentToken, lineNumber));
 
                 currentToken.clear();
             }
@@ -64,19 +66,21 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
     if (!currentToken.empty()) {
         currentToken = mapSpecialRegisters(currentToken);
         TokenType tokenType = getTokenType(currentToken);
-        tokens.push_back(Token(tokenType, currentToken, lineNumber));
 
         if (tokenType == TokenType::LABEL) {
             currentLabel = currentToken;
         }
 
         if (tokenType == TokenType::INSTRUCTION) {
+            currentToken = toLowerCase(currentToken);
             if (!toUpdateLabels.empty()) {
                 for (std::size_t j = 0; j < toUpdateLabels.size(); j++)
                     symbolTable.addLabel(toUpdateLabels[j], lineNumber);
                 toUpdateLabels.clear();
             }
         }
+
+        tokens.push_back(Token(tokenType, currentToken, lineNumber));
     }
 
     if (!toUpdateLabels.empty()) {
@@ -109,12 +113,19 @@ std::string Lexer::mapSpecialRegisters(const std::string& alias) {
 }
 
 TokenType Lexer::getTokenType(const std::string& token) {
-    
+
     if (token.front() == '"' && token.back() == '"') {
         return TokenType::IMMEDIATE;
     }
 
-    if (instructionMap.find(token) != instructionMap.end()) {
+    // instructions not necessary to be in lower case
+
+    auto it = std::find_if(instructionMap.begin(), instructionMap.end(),
+    [token](const auto & entry) {
+        return caseInsensitiveCompare(entry.first, token);
+    });
+
+    if (it != instructionMap.end()) {
         return TokenType::INSTRUCTION;
     }
 

@@ -12,7 +12,3 @@ int SymbolTable::getLabelInstructionLineNumber(const std::string& label) const {
 
     return -1;
 }
-
-const std::unordered_map<std::string, int>& SymbolTable::getLabels() const {
-    return labels;
-}
