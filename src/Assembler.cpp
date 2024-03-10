@@ -311,15 +311,23 @@ std::bitset<32> Assembler::generateUTypeMachineCode(const std::string& opcode, c
 
     machineCode = binaryStringToNumber(opcode)
                   | (rd << 7)
-                  | ((immediate & 0xFFFFF000) << 12); // imm[12:31]
+                  | ((immediate & 0x000FFFFF) << 12); // imm left shifted by 12 and then imm[12:31] implies imm[0:19]
     return machineCode;
 }
 
 std::bitset<32> Assembler::generateUJTypeMachineCode(const std::string& opcode, const std::vector<std::string>& operands) {
     std::bitset<32> machineCode;
 
-    int rd = std::stoi(operands[0].substr(1));
-    std::string imm = operands[1];
+    int rd;
+    std::string imm;
+
+    if (operands.size() == 1) {
+        rd = 1;
+        imm = operands[0];
+    } else {
+        rd = std::stoi(operands[0].substr(1));
+        imm = operands[1];
+    }
 
     int immediate = convertImmediateToInteger(imm);
 
