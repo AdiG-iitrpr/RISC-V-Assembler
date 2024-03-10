@@ -253,6 +253,14 @@ std::bitset<32> Assembler::generateITypeMachineCode(const std::string& opcode, c
 
     int immediate = convertImmediateToInteger(imm);
 
+    if (immediate < -2048 || immediate > 2047) {
+        std::string allOperands;
+        for (const auto& operand : operands) {
+            allOperands += operand + " ";
+        }
+        throw std::runtime_error("Error: Immediate value out of range for I-type instruction (-2048 to 2047): " + allOperands);
+    }
+
     machineCode = binaryStringToNumber(opcode)
                   | (rd << 7)
                   | (binaryStringToNumber(funct3) << 12)
@@ -270,6 +278,14 @@ std::bitset<32> Assembler::generateSTypeMachineCode(const std::string& opcode, c
     std::string imm = operands[1];
 
     int immediate = convertImmediateToInteger(imm);
+
+    if (immediate < -2048 || immediate > 2047) {
+        std::string allOperands;
+        for (const auto& operand : operands) {
+            allOperands += operand + " ";
+        }
+        throw std::runtime_error("Error: Immediate value out of range for S-type instruction (-2048 to 2047): " + allOperands);
+    }
 
     machineCode = binaryStringToNumber(opcode)
                   | ((immediate & 0x1F) << 7) // imm[0:4]
@@ -290,6 +306,14 @@ std::bitset<32> Assembler::generateSBTypeMachineCode(const std::string& opcode, 
 
     int immediate = convertImmediateToInteger(imm);
 
+    if (immediate < -4096 || immediate > 4094) {
+        std::string allOperands;
+        for (const auto& operand : operands) {
+            allOperands += operand + " ";
+        }
+        throw std::runtime_error("Error: Immediate value out of range for SB-type instruction (-4096 to 4094): " + allOperands);
+    }
+
     machineCode = binaryStringToNumber(opcode)
                   | (((immediate & 0x800) >> 11) << 7) // imm[11]
                   | (((immediate & 0x1E) >> 1) << 8) // imm[1:4]
@@ -308,6 +332,14 @@ std::bitset<32> Assembler::generateUTypeMachineCode(const std::string& opcode, c
     std::string imm = operands[1];
 
     int immediate = convertImmediateToInteger(imm);
+
+    if (immediate < -0 || immediate > 1048575) {
+        std::string allOperands;
+        for (const auto& operand : operands) {
+            allOperands += operand + " ";
+        }
+        throw std::runtime_error("Error: Immediate value out of range for U-type instruction (0 to 1048575): " + allOperands);
+    }
 
     machineCode = binaryStringToNumber(opcode)
                   | (rd << 7)
@@ -330,6 +362,14 @@ std::bitset<32> Assembler::generateUJTypeMachineCode(const std::string& opcode, 
     }
 
     int immediate = convertImmediateToInteger(imm);
+
+    if (immediate < -524288 || immediate > 524286) {
+        std::string allOperands;
+        for (const auto& operand : operands) {
+            allOperands += operand + " ";
+        }
+        throw std::runtime_error("Error: Immediate value out of range for UJ-type instruction (-524288 to 524286): " + allOperands);
+    }
 
     machineCode = binaryStringToNumber(opcode)
                   | (rd << 7)
