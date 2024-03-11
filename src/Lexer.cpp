@@ -31,8 +31,12 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
                     instruction = true;
                     currentToken = toLowerCase(currentToken);
                     if (!toUpdateLabels.empty()) {
-                        for (std::size_t j = 0; j < toUpdateLabels.size(); j++)
-                            symbolTable.addLabel(toUpdateLabels[j], lineNumber);
+                        for (std::size_t j = 0; j < toUpdateLabels.size(); j++) {
+                            if (symbolTable.getLabelInstructionLineNumber(toUpdateLabels[j]) == -1)
+                                symbolTable.addLabel(toUpdateLabels[j], lineNumber);
+                            else
+                                throw std::runtime_error("Label " + toUpdateLabels[j] + " defined more than once");
+                        }
                         toUpdateLabels.clear();
                     }
                 }
@@ -74,8 +78,12 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
         if (tokenType == TokenType::INSTRUCTION) {
             currentToken = toLowerCase(currentToken);
             if (!toUpdateLabels.empty()) {
-                for (std::size_t j = 0; j < toUpdateLabels.size(); j++)
-                    symbolTable.addLabel(toUpdateLabels[j], lineNumber);
+                for (std::size_t j = 0; j < toUpdateLabels.size(); j++) {
+                    if (symbolTable.getLabelInstructionLineNumber(toUpdateLabels[j]) == -1)
+                        symbolTable.addLabel(toUpdateLabels[j], lineNumber);
+                    else
+                        throw std::runtime_error("Label " + toUpdateLabels[j] + " defined more than once");
+                }
                 toUpdateLabels.clear();
             }
         }
@@ -84,8 +92,12 @@ std::vector<Token> Lexer::tokenize(const std::string& input, SymbolTable &symbol
     }
 
     if (!toUpdateLabels.empty()) {
-        for (std::size_t j = 0; j < toUpdateLabels.size(); j++)
-            symbolTable.addLabel(toUpdateLabels[j], lineNumber);
+        for (std::size_t j = 0; j < toUpdateLabels.size(); j++) {
+            if (symbolTable.getLabelInstructionLineNumber(toUpdateLabels[j]) == -1)
+                symbolTable.addLabel(toUpdateLabels[j], lineNumber);
+            else
+                throw std::runtime_error("Label " + toUpdateLabels[j] + " defined more than once");
+        }
         toUpdateLabels.clear();
     }
 
