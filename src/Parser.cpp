@@ -18,7 +18,13 @@ Instruction Parser::parse(const std::vector<Token>& tokens, SymbolTable& symbolT
 
         for (size_t i = 1; i < tokens.size(); ++i) {
             if (tokens[i].getType() == TokenType::LABEL) {
-                int immediate = 4 * (symbolTable.getLabelInstructionLineNumber(tokens[i].getValue()) - tokens[i].getLineNumber());
+
+                int immediate = 4 * (symbolTable.getLabelInstructionLineNumber(tokens[i].getValue()));
+                if (type == Type::R_TYPE or type == Type::SB_TYPE or type == Type::UJ_TYPE)
+                    immediate -= 4 * tokens[i].getLineNumber();
+                else
+                    immediate -= 4;
+
                 operands.push_back(std::to_string(immediate));
             } else
                 operands.push_back(tokens[i].getValue());
