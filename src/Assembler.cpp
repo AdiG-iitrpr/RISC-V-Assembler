@@ -17,6 +17,8 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
 
     std::ofstream outputFile(outputFilePath);
 
+    std::vector<std::pair<std::string, std::string>> instructionMachineCodes;
+
     for (size_t i = 0; i < tokens.size(); ++i) {
         Token token = tokens[i];
 
@@ -31,13 +33,16 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
             Instruction parsedInstruction = parser.parse(instructionTokens, symbolTable);
             std::bitset<32> machineCode = generateMachineCode(parsedInstruction);
             std::string hexcode = binaryToHex(machineCode);
-            outputFile << decimalToHex(codeSegmentAddress, true, false) << " " << hexcode << std::endl;
+            instructionMachineCodes.push_back({decimalToHex(codeSegmentAddress, true, false), hexcode});
             codeSegmentAddress += 4;
 
         } else if (token.getType() == TokenType::DIRECTIVE) {
             handleDirective(token.getValue(), tokens, i, outputFile);
         }
     }
+
+    for (const auto& [programCounter, machineCode] : instructionMachineCodes)
+        outputFile <<  programCounter << " " << machineCode << std::endl;
 
     outputFile.close();
 }
