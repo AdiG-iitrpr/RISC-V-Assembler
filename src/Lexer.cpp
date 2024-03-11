@@ -124,6 +124,26 @@ std::string Lexer::mapSpecialRegisters(const std::string& alias) {
     return alias;
 }
 
+DirectiveType Lexer::getDirectiveType(const std::string& directive) {
+
+    if (directive == ".text")
+        return DirectiveType::TEXT;
+    if (directive == ".data")
+        return DirectiveType::DATA;
+    if (directive == ".byte")
+        return DirectiveType::BYTE;
+    if (directive == ".half")
+        return DirectiveType::HALF;
+    if (directive == ".word")
+        return DirectiveType::WORD;
+    if (directive == ".dword")
+        return DirectiveType::DWORD;
+    if (directive == ".asciiz")
+        return DirectiveType::ASCIIZ;
+
+    return DirectiveType::UNKNOWN;
+}
+
 TokenType Lexer::getTokenType(const std::string& token) {
 
     if (token.front() == '"' && token.back() == '"') {
@@ -139,10 +159,6 @@ TokenType Lexer::getTokenType(const std::string& token) {
 
     if (it != instructionMap.end()) {
         return TokenType::INSTRUCTION;
-    }
-
-    if (token == ".text" || token == ".data" || token == ".byte" || token == ".half" || token == ".word" || token == ".dword" || token == ".asciiz") {
-        return TokenType::DIRECTIVE;
     }
 
     // Check if the token is a register
@@ -165,6 +181,12 @@ TokenType Lexer::getTokenType(const std::string& token) {
         return TokenType::IMMEDIATE;
     } else if (token.size() > 3 && token.substr(0, 2) == "-0b" && isBinary(token.substr(3))) {
         return TokenType::IMMEDIATE;
+    }
+
+    // Check if token is a directive
+    DirectiveType directiveType = getDirectiveType(token);
+    if (directiveType != DirectiveType::UNKNOWN) {
+        return TokenType::DIRECTIVE;
     }
 
     return TokenType::LABEL;

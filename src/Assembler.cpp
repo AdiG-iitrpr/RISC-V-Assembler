@@ -49,21 +49,20 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
 
 void Assembler::handleDirective(const std::string& directive, const std::vector<Token>& tokens, const size_t& tokenId, std::ofstream& outputFile) {
 
-    std::string dataLabel = ".data";
-    std::string textLabel = ".text";
-    std::string charLabel = ".asciiz";
+    DirectiveType directiveType = lexer.getDirectiveType(directive);
     std::string data;
-    std::unordered_map<std::string, int>typeToSizeMap = {{".byte", 1}, {".half", 2}, {".word", 4}, {".dword", 8}};
+    std::unordered_map<DirectiveType, int>typeToSizeMap = {{DirectiveType::BYTE, 1}, {DirectiveType::HALF, 2}, {DirectiveType::WORD, 4}, {DirectiveType::DWORD, 8}};
 
-    if (directive == dataLabel) {
+    if (directiveType == DirectiveType::DATA) {
         size_t j = tokenId + 1;
-        while (tokens[j].getValue() != textLabel && j < tokens.size()) {
+        while (lexer.getDirectiveType(tokens[j].getValue()) != DirectiveType::TEXT && j < tokens.size()) {
 
             if (tokens[j].getType() != TokenType::DIRECTIVE) {
                 j += 1;
                 continue;
             }
-            std::string sizeType = tokens[j].getValue();
+
+            DirectiveType sizeType = lexer.getDirectiveType(tokens[j].getValue());
             int size = typeToSizeMap[sizeType];
             j += 1 ;
             while (tokens[j].getType() == TokenType::IMMEDIATE) {
@@ -136,29 +135,29 @@ std::string Assembler::readFile(const std::string& filePath) {
 std::bitset<32> Assembler::generateMachineCode(const Instruction& instruction) {
 
     std::bitset<32> machineCode;
-    Type type = instruction.getType();
+    InstructionType type = instruction.getType();
     std::string opcode = instruction.getOpcode();
     std::string funct3 = instruction.getFunct3();
     std::string funct7 = instruction.getFunct7();
     std::vector<std::string> operands = instruction.getOperands();
 
     switch (type) {
-    case Type::R_TYPE:
+    case InstructionType::R_TYPE:
         machineCode = generateRTypeMachineCode(opcode, funct3, funct7, operands);
         break;
-    case Type::I_TYPE:
+    case InstructionType::I_TYPE:
         machineCode = generateITypeMachineCode(opcode, funct3, operands);
         break;
-    case Type::S_TYPE:
+    case InstructionType::S_TYPE:
         machineCode = generateSTypeMachineCode(opcode, funct3, operands);
         break;
-    case Type::SB_TYPE:
+    case InstructionType::SB_TYPE:
         machineCode = generateSBTypeMachineCode(opcode, funct3, operands);
         break;
-    case Type::U_TYPE:
+    case InstructionType::U_TYPE:
         machineCode = generateUTypeMachineCode(opcode, operands);
         break;
-    case Type::UJ_TYPE:
+    case InstructionType::UJ_TYPE:
         machineCode = generateUJTypeMachineCode(opcode, operands);
         break;
     default:

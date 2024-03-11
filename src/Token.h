@@ -1,15 +1,7 @@
 #pragma once
 
+#include "utils/Enums.h"
 #include <string>
-
-enum class TokenType {
-    INSTRUCTION,
-    REGISTER,
-    LABEL,
-    DIRECTIVE,
-    IMMEDIATE,
-    INVALID
-};
 
 class Token {
 public:

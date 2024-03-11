@@ -12,6 +12,7 @@
 class Lexer {
 public:
     std::vector<Token> tokenize(const std::string& input, SymbolTable &symbolTable);
+    DirectiveType getDirectiveType(const std::string& directive);
 
     static bool caseInsensitiveCompare(const std::string& str1, const std::string& str2) {
         return toLowerCase(str1) == toLowerCase(str2);
@@ -26,7 +27,7 @@ public:
 private:
 
     const std::unordered_map<std::string, std::string>& registerAliasMap = RegisterAliases::registerAliasMap;
-    const std::unordered_map<std::string, std::tuple<Type, std::string, std::string, std::string>>& instructionMap = InstructionInfo::instructionMap;
+    const std::unordered_map<std::string, std::tuple<InstructionType, std::string, std::string, std::string>>& instructionMap = InstructionInfo::instructionMap;
     bool isWhitespace(char c);
     bool isDelimiter(char c);
     bool isComment(char c);

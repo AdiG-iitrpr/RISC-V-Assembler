@@ -11,7 +11,7 @@ Instruction Parser::parse(const std::vector<Token>& tokens, SymbolTable& symbolT
     auto it = InstructionInfo::instructionMap.find(instructionName);
 
     if (it != InstructionInfo::instructionMap.end()) {
-        Type type = std::get<0>(it->second);
+        InstructionType type = std::get<0>(it->second);
         std::string opcode = std::get<1>(it->second);
         std::string funct3 = std::get<2>(it->second);
         std::string funct7 = std::get<3>(it->second);
@@ -28,7 +28,7 @@ Instruction Parser::parse(const std::vector<Token>& tokens, SymbolTable& symbolT
 
 
                 int immediate = 4 * labelNextInstructionLineNumber;
-                if (type == Type::R_TYPE or type == Type::SB_TYPE or type == Type::UJ_TYPE)
+                if (type == InstructionType::R_TYPE or type == InstructionType::SB_TYPE or type == InstructionType::UJ_TYPE)
                     immediate -= 4 * tokens[i].getLineNumber();
                 else
                     immediate -= 4;
@@ -41,17 +41,17 @@ Instruction Parser::parse(const std::vector<Token>& tokens, SymbolTable& symbolT
         return Instruction(type, opcode, funct3, funct7, operands);
     }
 
-    return Instruction(Type::INVALID_TYPE, "", "", "", {});
+    return Instruction(InstructionType::INVALID_TYPE, "", "", "", {});
 
 }
 
-void Parser::checkValidInstruction(const std::vector<Token> &tokens, Type type, std::string& opcode) {
+void Parser::checkValidInstruction(const std::vector<Token> &tokens, InstructionType type, std::string& opcode) {
 
     int numOperands = tokens.size() - 1;
     std::string cuurentNumOperands = std::to_string(numOperands);
     switch (type) {
 
-    case Type::R_TYPE:
+    case InstructionType::R_TYPE:
         if (numOperands != 3)
             throw std::runtime_error("Expected 3 arguments but recieved " + cuurentNumOperands);
 
@@ -61,7 +61,7 @@ void Parser::checkValidInstruction(const std::vector<Token> &tokens, Type type, 
         }
         break;
 
-    case Type::I_TYPE:
+    case InstructionType::I_TYPE:
         if (numOperands != 3)
             throw std::runtime_error("Expected 3 arguments but recieved " + cuurentNumOperands);
 
@@ -79,7 +79,7 @@ void Parser::checkValidInstruction(const std::vector<Token> &tokens, Type type, 
         }
         break;
 
-    case Type::S_TYPE:
+    case InstructionType::S_TYPE:
         if (numOperands != 3)
             throw std::runtime_error("Expected 3 arguments but recieved " + cuurentNumOperands);
 
@@ -89,7 +89,7 @@ void Parser::checkValidInstruction(const std::vector<Token> &tokens, Type type, 
         }
         break;
 
-    case Type::SB_TYPE:
+    case InstructionType::SB_TYPE:
         if (numOperands != 3)
             throw std::runtime_error("Expected 3 arguments but recieved " + cuurentNumOperands);
 
@@ -99,7 +99,7 @@ void Parser::checkValidInstruction(const std::vector<Token> &tokens, Type type, 
         }
         break;
 
-    case Type::U_TYPE:
+    case InstructionType::U_TYPE:
         if (numOperands != 2)
             throw std::runtime_error("Expected 2 arguments but recieved " + cuurentNumOperands);
 
@@ -107,7 +107,7 @@ void Parser::checkValidInstruction(const std::vector<Token> &tokens, Type type, 
             throw std::runtime_error(tokens[1].getValue() + " not a valid Register");
         break;
 
-    case Type::UJ_TYPE:
+    case InstructionType::UJ_TYPE:
         if (numOperands != 2 and numOperands != 1)
             throw std::runtime_error("Expected 2 or 1 arguments but recieved " + cuurentNumOperands);
 

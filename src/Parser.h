@@ -9,5 +9,5 @@ class Parser {
 public:
     Instruction parse(const std::vector<Token>& tokens, SymbolTable& symbolTable);
 private:
-    void checkValidInstruction(const std::vector<Token> &tokens, Type type, std::string& opcode);
+    void checkValidInstruction(const std::vector<Token> &tokens, InstructionType type, std::string& opcode);
 };

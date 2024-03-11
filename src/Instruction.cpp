@@ -1,10 +1,10 @@
 #include "Instruction.h"
 
-Instruction::Instruction(Type type, const std::string& opcode, const std::string& funct3, const std::string& funct7, const std::vector<std::string>& operands)
+Instruction::Instruction(InstructionType type, const std::string& opcode, const std::string& funct3, const std::string& funct7, const std::vector<std::string>& operands)
     : type(type), opcode(opcode), funct3(funct3), funct7(funct7), operands(operands) {}
 
 
-Type Instruction::getType() const {
+InstructionType Instruction::getType() const {
     return type;
 }
 
