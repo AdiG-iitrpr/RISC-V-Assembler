@@ -17,6 +17,8 @@ Instruction Parser::parse(const std::vector<Token>& tokens, SymbolTable& symbolT
         std::string funct7 = std::get<3>(it->second);
         std::vector<std::string> operands;
 
+        checkValidInstruction(tokens, type, opcode);
+
         for (size_t i = 1; i < tokens.size(); ++i) {
             if (tokens[i].getType() == TokenType::LABEL) {
 
@@ -40,5 +42,83 @@ Instruction Parser::parse(const std::vector<Token>& tokens, SymbolTable& symbolT
     }
 
     return Instruction(Type::INVALID_TYPE, "", "", "", {});
+
+}
+
+void Parser::checkValidInstruction(const std::vector<Token> &tokens, Type type, std::string& opcode) {
+
+    int numOperands = tokens.size() - 1;
+    std::string cuurentNumOperands = std::to_string(numOperands);
+    switch (type) {
+
+    case Type::R_TYPE:
+        if (numOperands != 3)
+            throw std::runtime_error("Expected 3 arguments but recieved " + cuurentNumOperands);
+
+        for (size_t i = 1; i < tokens.size(); ++i) {
+            if (tokens[i].getType() != TokenType::REGISTER)
+                throw std::runtime_error(tokens[i].getValue() + " not a valid Register");
+        }
+        break;
+
+    case Type::I_TYPE:
+        if (numOperands != 3)
+            throw std::runtime_error("Expected 3 arguments but recieved " + cuurentNumOperands);
+
+        if (tokens[1].getType() != TokenType::REGISTER)
+            throw std::runtime_error(tokens[1].getValue() + " not a valid Register");
+
+        if (opcode == "0000011") {
+
+            if (tokens[3].getType() != TokenType::REGISTER)
+                throw std::runtime_error(tokens[3].getValue() + " not a valid Register");
+        } else {
+
+            if (tokens[2].getType() != TokenType::REGISTER)
+                throw std::runtime_error(tokens[2].getValue() + " not a valid Register");
+        }
+        break;
+
+    case Type::S_TYPE:
+        if (numOperands != 3)
+            throw std::runtime_error("Expected 3 arguments but recieved " + cuurentNumOperands);
+
+        for (size_t i = 1; i < tokens.size(); i += 2) {
+            if (tokens[i].getType() != TokenType::REGISTER)
+                throw std::runtime_error(tokens[i].getValue() + " not a valid Register");
+        }
+        break;
+
+    case Type::SB_TYPE:
+        if (numOperands != 3)
+            throw std::runtime_error("Expected 3 arguments but recieved " + cuurentNumOperands);
+
+        for (size_t i = 1; i < tokens.size() - 1 ; ++i) {
+            if (tokens[i].getType() != TokenType::REGISTER)
+                throw std::runtime_error(tokens[i].getValue() + " not a valid Register");
+        }
+        break;
+
+    case Type::U_TYPE:
+        if (numOperands != 2)
+            throw std::runtime_error("Expected 2 arguments but recieved " + cuurentNumOperands);
+
+        if (tokens[1].getType() != TokenType::REGISTER)
+            throw std::runtime_error(tokens[1].getValue() + " not a valid Register");
+        break;
+
+    case Type::UJ_TYPE:
+        if (numOperands != 2 and numOperands != 1)
+            throw std::runtime_error("Expected 2 or 1 arguments but recieved " + cuurentNumOperands);
+
+        if (numOperands == 2 and tokens[1].getType() != TokenType::REGISTER)
+            throw std::runtime_error(tokens[1].getValue() + " not a valid Register");
+        break;
+
+    default:
+        break;
+
+
+    }
 
 }
