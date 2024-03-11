@@ -1,4 +1,5 @@
 #include "Assembler.h"
+#include "utils/FileUtils.h"
 
 #include <fstream>
 #include <sstream>
@@ -11,7 +12,7 @@ Assembler::Assembler(Lexer &lexer, Parser &parser, SymbolTable &symbolTable) : l
 
 void Assembler::assemble(const std::string& inputFilePath, const std::string& outputFilePath) {
 
-    std::string assemblyCode = readFile(inputFilePath);
+    std::string assemblyCode = FileUtils::readFile(inputFilePath);
 
     std::vector<Token> tokens = lexer.tokenize(assemblyCode, symbolTable);
 
@@ -72,7 +73,7 @@ void Assembler::handleDirective(const std::string& directive, const std::vector<
                 j++;
             }
         }
-        for (int i = 0; i < data.size(); i += 8) {
+        for (size_t i = 0; i < data.size(); i += 8) {
 
             std::string tempData = data.substr(i, 8);
             if (tempData.size() < 8) tempData = tempData + std::string(8 - tempData.size(), '0');
@@ -88,7 +89,7 @@ std::string Assembler::immedTypeToHexadecimal(const std::string& imm, const int&
     int immediate;
     std::string immed;
     if (imm[0] == '"') {
-        for (int i = 1; i < imm.size() - 1; i++) {
+        for (size_t i = 1; i < imm.size() - 1; i++) {
             char c = imm[i];
             std::stringstream stream;
             stream << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(c);
@@ -106,30 +107,11 @@ std::string Assembler::immedTypeToHexadecimal(const std::string& imm, const int&
         }
         std::string tempImm = immed;
         immed = "";
-        for (int i = 0; i < tempImm.size(); i += 2) {
+        for (size_t i = 0; i < tempImm.size(); i += 2) {
             immed = tempImm.substr(i, 2) + immed;
         }
     }
     return immed;
-}
-
-
-std::string Assembler::readFile(const std::string& filePath) {
-    std::ifstream file(filePath);
-    if (!file.is_open()) {
-        throw std::runtime_error("Error opening file: " + filePath);
-    }
-
-    std::stringstream buffer;
-    std::string line;
-
-    while (std::getline(file, line)) {
-        if (!line.empty()) {
-            buffer << line << '\n';
-        }
-    }
-
-    return buffer.str();
 }
 
 std::bitset<32> Assembler::generateMachineCode(const Instruction& instruction) {
