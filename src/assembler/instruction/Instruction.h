@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils/Enums.h"
+#include "../../utils/Enums.h"
 #include <string>
 #include <vector>
 #include <unordered_map>

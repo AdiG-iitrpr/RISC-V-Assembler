@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Lexer.h"
-#include "Parser.h"
+#include "lexer/Lexer.h"
+#include "parser/Parser.h"
 
 #include <string>
 #include <vector>

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Lexer.h"
-#include "SymbolTable.h"
-#include "Instruction.h"
-#include "Token.h"
+#include "../lexer/Lexer.h"
+#include "../labelTable/SymbolTable.h"
+#include "../instruction/Instruction.h"
+#include "../token/Token.h"
 
 class Parser {
 public:

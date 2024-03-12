@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Token.h"
-#include "Instruction.h"
-#include "RegisterAliases.h"
-#include "SymbolTable.h"
+#include "../token/Token.h"
+#include "../instruction/Instruction.h"
+#include "../RegisterAliases.h"
+#include "../labelTable/SymbolTable.h"
 #include <vector>
 #include <string>
 #include <unordered_map>

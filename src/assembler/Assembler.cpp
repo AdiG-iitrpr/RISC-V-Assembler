@@ -1,6 +1,6 @@
 #include "Assembler.h"
-#include "utils/FileUtils.h"
-#include "utils/NumberUtils.h"
+#include "../utils/FileUtils.h"
+#include "../utils/NumberUtils.h"
 
 #include <fstream>
 #include <sstream>

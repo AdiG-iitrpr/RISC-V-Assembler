@@ -1,7 +1,7 @@
-#include "Assembler.h"
-#include "Lexer.h"
-#include "Parser.h"
-#include "SymbolTable.h"
+#include "assembler/Assembler.h"
+#include "assembler/lexer/Lexer.h"
+#include "assembler/parser/Parser.h"
+#include "assembler/labelTable/SymbolTable.h"
 
 #include <cstdlib>
 #include <iostream>

@@ -32,13 +32,13 @@ include_directories(src)
 
 
 add_executable(assembler
-   src/Parser.cpp
+   src/assembler/parser/Parser.cpp
    src/main.cpp
-   src/Assembler.cpp
-   src/Lexer.cpp
-   src/SymbolTable.cpp
-   src/Token.cpp
-   src/Instruction.cpp
+   src/assembler/Assembler.cpp
+   src/assembler/lexer/Lexer.cpp
+   src/assembler/labelTable/SymbolTable.cpp
+   src/assembler/token/Token.cpp
+   src/assembler/instruction/Instruction.cpp
    src/utils/FileUtils.cpp
    src/utils/NumberUtils.cpp
 
