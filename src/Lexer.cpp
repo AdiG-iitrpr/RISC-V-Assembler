@@ -1,4 +1,5 @@
 #include "Lexer.h"
+#include "utils/NumberUtils.h"
 
 #include <iostream>
 #include <ctype.h>
@@ -173,13 +174,13 @@ TokenType Lexer::getTokenType(const std::string& token) {
         return TokenType::IMMEDIATE;
     } else if (std::isdigit(token.front())) {
         return TokenType::IMMEDIATE;
-    } else if (token.size() > 2 && token.substr(0, 2) == "0x" && isHexadecimal(token.substr(2))) {
+    } else if (token.size() > 2 && token.substr(0, 2) == "0x" && NumberUtils::isHexadecimal(token.substr(2))) {
         return TokenType::IMMEDIATE;
-    } else if (token.size() > 3 && token.substr(0, 3) == "-0x" && isHexadecimal(token.substr(3))) {
+    } else if (token.size() > 3 && token.substr(0, 3) == "-0x" && NumberUtils::isHexadecimal(token.substr(3))) {
         return TokenType::IMMEDIATE;
-    } else if (token.size() > 2 && token.substr(0, 2) == "0b" && isBinary(token.substr(2))) {
+    } else if (token.size() > 2 && token.substr(0, 2) == "0b" && NumberUtils::isBinary(token.substr(2))) {
         return TokenType::IMMEDIATE;
-    } else if (token.size() > 3 && token.substr(0, 2) == "-0b" && isBinary(token.substr(3))) {
+    } else if (token.size() > 3 && token.substr(0, 2) == "-0b" && NumberUtils::isBinary(token.substr(3))) {
         return TokenType::IMMEDIATE;
     }
 
@@ -190,22 +191,4 @@ TokenType Lexer::getTokenType(const std::string& token) {
     }
 
     return TokenType::LABEL;
-}
-
-bool Lexer::isHexadecimal(const std::string& str) {
-    for (char c : str) {
-        if (!std::isxdigit(c)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool Lexer::isBinary(const std::string& str) {
-    for (char c : str) {
-        if (c != '0' && c != '1') {
-            return false;
-        }
-    }
-    return true;
 }

@@ -31,8 +31,6 @@ private:
     bool isWhitespace(char c);
     bool isDelimiter(char c);
     bool isComment(char c);
-    bool isHexadecimal(const std::string& str);
-    bool isBinary(const std::string& str);
     std::string mapSpecialRegisters(const std::string& alias);
     TokenType getTokenType(const std::string& token);
 };

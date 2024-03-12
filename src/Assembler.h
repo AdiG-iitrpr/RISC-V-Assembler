@@ -25,11 +25,6 @@ private:
 
     void handleDirective(const std::string& directive, const std::vector<Token>& tokens, const size_t& tokenId, std::ofstream& outputFile);
     std::string immedTypeToHexadecimal(const std::string& immed, const int& size);
-    std::string readFile(const std::string& filePath);
-    int binaryStringToNumber(const std::string& binaryString);
-    std::string binaryToHex(const std::bitset<32>&bits);
-    std::string decimalToHex(uint32_t decimal, bool trimzeros, bool upperCase);
-    int convertImmediateToInteger(const std::string& imm);
     std::bitset<32> generateMachineCode(const Instruction& instruction);
     std::bitset<32> generateRTypeMachineCode(const std::string& opcode, const std::string& funct3, const std::string& funct7, const std::vector<std::string>& operands);
     std::bitset<32> generateITypeMachineCode(const std::string& opcode, const std::string& funct3, const std::vector<std::string>& operands);

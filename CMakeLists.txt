@@ -39,5 +39,7 @@ add_executable(assembler
    src/SymbolTable.cpp
    src/Token.cpp
    src/Instruction.cpp
+   src/utils/FileUtils.cpp
+   src/utils/NumberUtils.cpp
 
 )
