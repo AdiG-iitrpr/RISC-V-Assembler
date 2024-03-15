@@ -21,6 +21,8 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
 
     std::vector<std::pair<std::string, std::string>> instructionMachineCodes;
 
+    std::string dataSegmentBuffer;
+
     for (size_t i = 0; i < tokens.size(); ++i) {
         Token token = tokens[i];
 
@@ -35,24 +37,34 @@ void Assembler::assemble(const std::string& inputFilePath, const std::string& ou
             Instruction parsedInstruction = parser.parse(instructionTokens, symbolTable);
             std::bitset<32> machineCode = generateMachineCode(parsedInstruction);
             std::string hexcode = NumberUtils::binaryToHex(machineCode);
-            instructionMachineCodes.push_back({NumberUtils::decimalToHex(codeSegmentAddress, true, false), hexcode});
+
+            outputFile << NumberUtils::decimalToHex(codeSegmentAddress, true, false) << " " << hexcode << std::endl;
             codeSegmentAddress += 4;
 
         } else if (token.getType() == TokenType::DIRECTIVE) {
-            handleDirective(token.getValue(), tokens, i, outputFile);
+            handleDirective(token.getValue(), tokens, i, dataSegmentBuffer);
         }
     }
 
-    for (const auto& [programCounter, machineCode] : instructionMachineCodes)
-        outputFile <<  programCounter << " " << machineCode << std::endl;
+    outputFile << " " << std::endl;
+
+    for (size_t i = 0; i < dataSegmentBuffer.size(); i += 8) {
+
+        std::string dataSegmentValue = dataSegmentBuffer.substr(i, 8);
+        if (dataSegmentValue.size() < 8) dataSegmentValue = dataSegmentValue + std::string(8 - dataSegmentValue.size(), '0');
+        std::string addressValue = "0x" + dataSegmentValue.substr(6, 2) + dataSegmentValue.substr(4, 2) + dataSegmentValue.substr(2, 2) + dataSegmentValue.substr(0, 2);
+        outputFile << NumberUtils::decimalToHex(dataSegmentAddress, false, true) << " " << addressValue << std::endl;
+        dataSegmentAddress += 4;
+
+    }
 
     outputFile.close();
 }
 
-void Assembler::handleDirective(const std::string& directive, const std::vector<Token>& tokens, const size_t& tokenId, std::ofstream& outputFile) {
+void Assembler::handleDirective(const std::string& directive, const std::vector<Token>& tokens, const size_t& tokenId, std::string& dataSegmentBuffer) {
 
     DirectiveType directiveType = lexer.getDirectiveType(directive);
-    std::string data;
+
     std::unordered_map<DirectiveType, int>typeToSizeMap = {{DirectiveType::BYTE, 1}, {DirectiveType::HALF, 2}, {DirectiveType::WORD, 4}, {DirectiveType::DWORD, 8}};
 
     if (directiveType == DirectiveType::DATA) {
@@ -68,51 +80,45 @@ void Assembler::handleDirective(const std::string& directive, const std::vector<
             int size = typeToSizeMap[sizeType];
             j += 1 ;
             while (tokens[j].getType() == TokenType::IMMEDIATE) {
-                std::string immed = tokens[j].getValue();
-                std::string imm = immedTypeToHexadecimal(immed, 2 * size);
-                data += imm;
+                std::string immediate = tokens[j].getValue();
+                std::string immediateHexadecimal = convertImmediateToHexadecimalFormat(immediate, 2 * size);
+                dataSegmentBuffer += immediateHexadecimal;
                 j++;
+
             }
-        }
-        for (size_t i = 0; i < data.size(); i += 8) {
-
-            std::string tempData = data.substr(i, 8);
-            if (tempData.size() < 8) tempData = tempData + std::string(8 - tempData.size(), '0');
-            std::string printData = "0x" + tempData.substr(6, 2) + tempData.substr(4, 2) + tempData.substr(2, 2) + tempData.substr(0, 2);
-
-            outputFile << NumberUtils::decimalToHex(dataSegmentAddress, false, true) << " " << printData << std::endl;
-            dataSegmentAddress += 4;
         }
     }
 }
 
-std::string Assembler::immedTypeToHexadecimal(const std::string& imm, const int& size) {
-    int immediate;
-    std::string immed;
-    if (imm[0] == '"') {
-        for (size_t i = 1; i < imm.size() - 1; i++) {
-            char c = imm[i];
+std::string Assembler::convertImmediateToHexadecimalFormat(const std::string& immediate, const int& size) {
+
+    std::string immediateHexadecimal;
+    if (immediate[0] == '"') {
+        for (size_t i = 1; i < immediate.size() - 1; i++) {
+            char c = immediate[i];
             std::stringstream stream;
             stream << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(c);
-            immed += stream.str();
+            immediateHexadecimal += stream.str();
         }
-        immed += "00";
+        immediateHexadecimal += "00";
     } else {
-        immediate = NumberUtils::convertStringToInteger(imm);
-        immed = NumberUtils::decimalToHex(immediate, true, true).substr(2);
-        if (immed.size() % 2 != 0) immed = "0" + immed;
-        int currentLength = immed.length();
+
+        immediateHexadecimal = NumberUtils::decimalToHex(NumberUtils::convertStringToInteger(immediate), true, true).substr(2);
+        if (immediateHexadecimal.size() % 2 != 0) immediateHexadecimal = "0" + immediateHexadecimal;
+
+        int currentLength = immediateHexadecimal.length();
         int zerosNeeded = size - currentLength;
-        if (zerosNeeded > 0) {
-            immed = std::string(zerosNeeded, '0') + immed;
-        }
-        std::string tempImm = immed;
-        immed = "";
-        for (size_t i = 0; i < tempImm.size(); i += 2) {
-            immed = tempImm.substr(i, 2) + immed;
-        }
+
+        if (zerosNeeded > 0)
+            immediateHexadecimal = std::string(zerosNeeded, '0') + immediateHexadecimal;
+
+        std::string formattedHex;
+        for (size_t i = 0; i < immediateHexadecimal.size(); i += 2)
+            formattedHex = immediateHexadecimal.substr(i, 2) + formattedHex;
+
+        immediateHexadecimal = formattedHex;
     }
-    return immed;
+    return immediateHexadecimal;
 }
 
 std::bitset<32> Assembler::generateMachineCode(const Instruction& instruction) {
